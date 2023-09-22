@@ -34,7 +34,7 @@ function _disjunction_to_set(d::Disjunction)
         push!(funcs, _indicator_to_binary(model)[lvref])
         push!(d_idxs, length(funcs))
         crefs = _indicator_to_constraints(model)[lvref]
-        push!(sets, [_constr_set!(funcs, JuMP.constraint_object(cref)) for cref in crefs])
+        push!(sets, map(c -> _constr_set!(funcs, JuMP.constraint_object(c)), crefs))
     end
     # convert the `sets` type to be concrete if possible (TODO benchmark if this is worth it)
     SetType = typeof(first(sets))
