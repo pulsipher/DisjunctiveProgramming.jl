@@ -27,7 +27,7 @@ end
 # Create the vectors needed for a disjunction vector constraint
 function _disjunction_to_set(d::Disjunction)
     funcs = JuMP.AbstractJuMPScalar[]
-    sets = [] # TODO add type 
+    sets = Vector{Vector{_MOI.AbstractSet}}[]
     d_idxs = Int[]
     for lvref in d.indicators
         model = JuMP.owner_model(lvref)
@@ -35,6 +35,11 @@ function _disjunction_to_set(d::Disjunction)
         push!(d_idxs, length(funcs))
         crefs = _indicator_to_constraints(model)[lvref]
         push!(sets, [_constr_set!(funcs, JuMP.constraint_object(cref)) for cref in crefs])
+    end
+    # convert the `sets` type to be concrete if possible (TODO benchmark if this is worth it)
+    SetType = typeof(first(sets))
+    if SetType != Vector{_MOI.AbstractSet} && all(s -> s isa SetType, sets) 
+        sets = convert(SetType, sets)
     end
     return funcs, DisjunctionSet(length(funcs), d_idxs, sets)
 end
